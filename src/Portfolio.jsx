@@ -132,8 +132,12 @@ const EDUCATION = {
   degree: "Bachelor of Science in Information Technology",
   start: "2022",
   end: "2026",
-  honors: ["Academic Distinction", "Programmer of the Year", "Best in Computer Programming"],
-  award: "MAHALTA NA Leadership Awardee (2024–2025)",
+  honors: [
+    { label: "Academic Distinction" },
+    { label: "Programmer of the Year" },
+    { label: "Best in Computer Programming" },
+    { label: "MAHALTA NA Leadership Awardee", meta: "2024–2025" },
+  ],
 };
 
 const CERTIFICATIONS = [
@@ -380,6 +384,16 @@ export default function Portfolio() {
   const navRef = useRef(null);
   const [navSolid, setNavSolid] = useState(false);
   const [lightboxItem, setLightboxItem] = useState(null);
+  const [pingedHonor, setPingedHonor] = useState(null);
+  const pingTimeout = useRef(null);
+
+  const pingHonor = (i) => {
+    setPingedHonor(i);
+    if (pingTimeout.current) clearTimeout(pingTimeout.current);
+    pingTimeout.current = setTimeout(() => setPingedHonor(null), 650);
+  };
+
+  useEffect(() => () => pingTimeout.current && clearTimeout(pingTimeout.current), []);
 
   useEffect(() => {
     const onScroll = () => setNavSolid(window.scrollY > 40);
@@ -581,13 +595,20 @@ export default function Portfolio() {
                 {EDUCATION.start} — {EDUCATION.end}
               </div>
               <div className="edu-honors">
-                {EDUCATION.honors.map((h) => (
-                  <span className="honor-pill" key={h}>
-                    <Award size={11} /> {h}
-                  </span>
+                {EDUCATION.honors.map((h, i) => (
+                  <button
+                    key={h.label}
+                    type="button"
+                    className={`honor-pill ${pingedHonor === i ? "is-pinged" : ""}`}
+                    onClick={() => pingHonor(i)}
+                  >
+                    <Award size={11} className="honor-icon" />
+                    <span className="honor-label">{h.label}</span>
+                    {h.meta && <span className="honor-meta">{h.meta}</span>}
+                    <span className="honor-ring" aria-hidden="true" />
+                  </button>
                 ))}
               </div>
-              <div className="edu-award">{EDUCATION.award}</div>
             </div>
           </Reveal>
 
@@ -595,26 +616,29 @@ export default function Portfolio() {
             <div className="cert-label">
               <span className="section-tag-comment">{"// "}</span>certifications
             </div>
-            <div className="cert-list">
-              {CERTIFICATIONS.map((cert) => (
-                <div className="cert-item" key={cert.name}>
-                  {cert.image && (
-                    <button className="cert-item-thumb" onClick={() => setLightboxItem(cert)} aria-label={`View ${cert.name}`}>
-                      <img src={cert.image} alt={cert.name} loading="lazy" />
-                    </button>
-                  )}
-                  <div className="cert-item-main">
-                    <div className="cert-name">{cert.name}</div>
-                    <div className="cert-issuer">{cert.issuer}</div>
+            <div className="courses-grid">
+              {CERTIFICATIONS.map((cert, i) => (
+                <Reveal key={cert.name} delay={i * 80} className="course-card">
+                  <CertThumb item={cert} onOpen={setLightboxItem} />
+                  <div className="course-info">
+                    <div className="course-icon">
+                      <Award size={13} />
+                    </div>
+                    <div>
+                      <div className="course-name">{cert.name}</div>
+                      <div className="course-issuer">{cert.issuer}</div>
+                    </div>
                   </div>
-                  {cert.link ? (
-                    <a className="cert-link" href={cert.link} target="_blank" rel="noreferrer">
-                      view <ExternalLink size={12} />
-                    </a>
-                  ) : (
-                    <div className="cert-id">ID: {cert.id}</div>
-                  )}
-                </div>
+                  <div className="course-footer">
+                    {cert.link ? (
+                      <a className="cert-link" href={cert.link} target="_blank" rel="noreferrer">
+                        view <ExternalLink size={12} />
+                      </a>
+                    ) : (
+                      <div className="cert-id">ID: {cert.id}</div>
+                    )}
+                  </div>
+                </Reveal>
               ))}
             </div>
           </Reveal>
@@ -1185,31 +1209,69 @@ function Styles() {
       .edu-dates { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 6px; }
       .edu-honors { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
       .honor-pill {
+        position: relative;
         display: inline-flex; align-items: center; gap: 5px;
+        font-family: var(--font-body);
         font-size: 11.5px; color: var(--accent-warm);
         background: rgba(242,166,90,0.08);
         border: 1px solid rgba(242,166,90,0.25);
         padding: 4px 9px; border-radius: 999px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: transform 200ms var(--ease-out-quint), background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
       }
-      .edu-award { font-size: 12.5px; color: var(--text-dim); margin-top: 12px; font-style: italic; }
+      .honor-pill:hover {
+        transform: translateY(-2px) scale(1.03);
+        background: rgba(242,166,90,0.15);
+        border-color: rgba(242,166,90,0.5);
+        box-shadow: 0 6px 16px -8px rgba(242,166,90,0.45);
+      }
+      .honor-pill:active { transform: translateY(-1px) scale(0.98); }
+      .honor-icon { transition: transform 300ms var(--ease-out-quint); }
+      .honor-pill:hover .honor-icon { transform: rotate(-18deg) scale(1.15); }
+      .honor-label { position: relative; }
+      .honor-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-dim);
+        padding-left: 6px;
+        margin-left: 2px;
+        border-left: 1px solid rgba(242,166,90,0.3);
+      }
+      .honor-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        border: 1px solid var(--accent-warm);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .honor-pill.is-pinged .honor-ring {
+        animation: honor-ping 650ms var(--ease-out-quint);
+      }
+      .honor-pill.is-pinged .honor-icon {
+        animation: honor-spin 650ms var(--ease-out-quint);
+      }
+      @keyframes honor-ping {
+        0% { opacity: 0.7; transform: scale(1); }
+        100% { opacity: 0; transform: scale(1.4); }
+      }
+      @keyframes honor-spin {
+        0% { transform: rotate(0deg) scale(1); }
+        40% { transform: rotate(-22deg) scale(1.2); }
+        100% { transform: rotate(0deg) scale(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .honor-pill, .honor-icon { transition: none; }
+        .honor-pill.is-pinged .honor-ring, .honor-pill.is-pinged .honor-icon { animation: none; }
+      }
 
-      .cert-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
-      .cert-label { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; }
-      .cert-list { display: flex; flex-direction: column; gap: 12px; }
-      .cert-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
-        background: var(--bg-soft);
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        flex-wrap: wrap;
+      .cert-block { background: transparent; border: none; padding: 0; }
+      .cert-label { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px; }
+      .course-footer {
+        padding: 0 16px 14px;
+        margin-top: -4px;
       }
-      .cert-item-main { flex: 1; min-width: 140px; }
-      .cert-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
-      .cert-issuer { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
       .cert-link {
         display: inline-flex; align-items: center; gap: 4px;
         font-family: var(--font-mono); font-size: 11.5px;
@@ -1270,21 +1332,6 @@ function Styles() {
         gap: 8px;
       }
       .footer-mono { font-family: var(--font-mono); }
-
-      /* Cert item thumbnail */
-      .cert-item-thumb {
-        flex-shrink: 0;
-        width: 56px;
-        height: 42px;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid var(--border-soft);
-        padding: 0;
-        background: var(--bg);
-        transition: transform 200ms var(--ease-out-quint), border-color 200ms ease;
-      }
-      .cert-item-thumb:hover { transform: translateY(-2px); border-color: var(--accent-dim); }
-      .cert-item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
       /* Courses grid */
       .courses-grid {
