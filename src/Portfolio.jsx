@@ -69,7 +69,7 @@ const EXPERIENCE = [
   {
     id: "soapwerke",
     role: "Production Worker",
-    org: "Soapwerke Inc.",
+    org: "RSV Human Resources Management Services (Soapwerke)",
     start: "Feb 2022",
     end: "Jul 2022",
     status: "past",
@@ -698,7 +698,7 @@ export default function Portfolio() {
 
       <footer className="footer">
         <span>© {new Date().getFullYear()} Arwin Madeja</span>
-        <span className="footer-mono">// status: actively deployed</span>
+        <span className="footer-mono">// status: Actively Seeking Employment</span>
       </footer>
 
       {lightboxItem && <Lightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />}
