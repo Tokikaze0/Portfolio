@@ -69,7 +69,7 @@ const EXPERIENCE = [
   {
     id: "soapwerke",
     role: "Production Worker",
-    org: "RSV Human Resources Management Services (Soapwerke)",
+    org: "RSV Human Resources Management Inc. (Soapwerke)",
     start: "Feb 2022",
     end: "Jul 2022",
     status: "past",
